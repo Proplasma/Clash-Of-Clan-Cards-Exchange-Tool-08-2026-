@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoC Card Trade Manager - Phân Loại Lính</title>
+  <style>
+    :root {
+      --bg-color: #12141d;
+      --card-bg: #1e2230;
+      --accent-color: #ff9800;
+      --accent-green: #4caf50;
+      --text-color: #f1f5f9;
+      --border-color: #333a4d;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--accent-color);
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    /* Controls Bar */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background-color: #0d0f17;
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: opacity 0.2s, background-color 0.2s;
+    }
+
+    button:hover { opacity: 0.85; }
+    .btn-primary { background-color: var(--accent-color); color: #000; }
+    .btn-success { background-color: var(--accent-green); color: #fff; }
+    .btn-info { background-color: #2196f3; color: #fff; }
+    .btn-danger { background-color: #f44336; color: #fff; }
+
+    /* Card Palette / Bank */
+    .bank-section {
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 25px;
+    }
+
+    .bank-title {
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #aaa;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+    }
+
+    /* Tab Filter Styles */
+    .category-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .tab-btn {
+      background: #161925;
+      color: #aaa;
+      border: 1px solid var(--border-color);
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 20px;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: #000;
+      border-color: var(--accent-color);
+    }
+
+    .card-pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-height: 50px;
+    }
+
+    /* Cards (Image Style) */
+    .coc-card {
+      background: #2a3042;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      user-select: none;
+      position: relative;
+      width: 80px;
+      height: 100px;
+      box-sizing: border-box;
+    }
+
+    .coc-card:active { cursor: grabbing; }
+
+    .coc-card img {
+      max-width: 100%;
+      max-height: 60px;
+      object-fit: contain;
+      margin-bottom: 5px;
+      pointer-events: none; /* Tránh cản trở sự kiện kéo thả */
+    }
+
+    .coc-card.duplicate {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+    }
+
+    .card-name {
+      font-size: 0.7rem;
+      text-align: center;
+      color: #ccc;
+      word-break: break-word;
+      max-width: 100%;
+      pointer-events: none; /* Tránh cản trở sự kiện kéo thả */
+    }
+
+    .card-badge {
+      background: var(--accent-color);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 10px;
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      pointer-events: none;
+    }
+
+    .card-badge.dup-badge {
+      background: var(--accent-green);
+      color: #fff;
+    }
+
+    /* Tier Rows */
+    .tier-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .tier-row {
+      display: flex;
+      background: var(--card-bg);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      min-height: 110px;
+    }
+
+    .tier-label {
+      width: 180px;
+      background: #161925;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border-right: 2px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .tier-label input {
+      text-align: center;
+      font-weight: bold;
+      font-size: 1rem;
+      background: transparent;
+      border: 1px dashed transparent;
+      color: var(--accent-color);
+      width: 100%;
+    }
+
+    .tier-label input:hover, .tier-label input:focus {
+      border-color: var(--border-color);
+      background: #0d0f17;
+    }
+
+    .tier-dropzone {
+      flex: 1;
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      background-color: rgba(0,0,0,0.15);
+    }
+
+    .tier-dropzone.drag-over {
+      background-color: rgba(255, 152, 0, 0.1);
+      border: 2px dashed var(--accent-color);
+    }
+
+    .card-controls {
+      display: flex;
+      gap: 4px;
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .btn-qty {
+      background: #111;
+      color: #fff;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .btn-qty:hover { opacity: 1; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <h1>⚔️ CoC Card Manager - Hình Ảnh 🛡️</h1>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Lọc theo tên thẻ (vd: Pekka, Dragon, Rồng)..." oninput="filterCards()">
+    </div>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="addAccount()">+ Thêm Nick</button>
+      <button class="btn-success" onclick="exportJSON()">💾 Xuất JSON</button>
+      <button class="btn-info" onclick="triggerImport()">📂 Nhập JSON</button>
+      <input type="file" id="importInput" class="hidden" accept=".json" onchange="importJSON(event)">
+    </div>
+  </div>
+
+  <!-- Kho Thẻ Mẫu -->
+  <div class="bank-section">
+    <div class="bank-title">Kho Thẻ Mẫu (Kéo thả ảnh vào các Nick)</div>
+    
+    <!-- Tab Phân Loại Lính -->
+    <div class="category-tabs" id="categoryTabs">
+      <button class="tab-btn active" onclick="setCategory('all', this)">Tất cả</button>
+      <button class="tab-btn" onclick="setCategory('elixir', this)">Lính thường</button>
+      <button class="tab-btn" onclick="setCategory('dark_elixir', this)">Lính hắc tiên dược</button>
+      <button class="tab-btn" onclick="setCategory('builder_base', this)">Lính đảo (Thợ xây)</button>
+      <button class="tab-btn" onclick="setCategory('super_troop', this)">Lính huyền thoại (Super)</button>
+    </div>
+
+    <div class="card-pool" id="cardBank"></div>
+  </div>
+
+  <!-- Tier List Accounts -->
+  <div class="tier-container" id="tierContainer"></div>
+
+  <script>
+    // Mảng dữ liệu thẻ tích hợp thuộc tính category
+    const DEFAULT_CARDS = [
+      // Lính Làng Chính (Elixir)
+      { name: "Barbarian", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/8/87/Avatar_Barbarian.png" },
+      { name: "Archer", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/6/68/Avatar_Archer.png/revision/latest/scale-to-width-down/120?cb=20200913014217" },
+      { name: "Giant", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/7/7d/Avatar_Giant.png/revision/latest/scale-to-width-down/120?cb=20170525070402" },
+      { name: "Goblin", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/6/68/Avatar_Goblin.png/revision/latest/scale-to-width-down/120?cb=20200913195137" },
+      { name: "Wall Breaker", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/3/36/Avatar_Wall_Breaker.png/revision/latest/scale-to-width-down/120?cb=20200913015114" },
+      { name: "Balloon", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/8/80/Avatar_Balloon.png/revision/latest/scale-to-width-down/120?cb=20170525070200" },
+      { name: "Wizard", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/97/Avatar_Wizard.png/revision/latest/scale-to-width-down/120?cb=20200913195243" },
+      { name: "Healer", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/9c/Avatar_Healer.png/revision/latest/scale-to-width-down/120?cb=20170525070403" },
+      { name: "Dragon", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/9c/Avatar_Dragon.png/revision/latest/scale-to-width-down/120?cb=20200913195335" },
+      { name: "PEKKA", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/1/1a/Avatar_P.E.K.K.A.png/revision/latest/scale-to-width-down/120?cb=20170525070542" },
+      { name: "Baby Dragon", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/7/7a/Avatar_Baby_Dragon.png/revision/latest/scale-to-width-down/120?cb=20200913014509" },
+      { name: "Miner", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/7/7a/Avatar_Miner.png/revision/latest/scale-to-width-down/120?cb=20170525070405" },
+      { name: "Electro Dragon", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/97/Avatar_Electro_Dragon.png/revision/latest/scale-to-width-down/120?cb=20200910094107" },
+      { name: "Yeti", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/b/be/Avatar_Yeti.png/revision/latest/scale-to-width-down/120?cb=20200913074419" },
+      { name: "Dragon Rider", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/5/50/Avatar_Dragon_Rider.png/revision/latest/scale-to-width-down/120?cb=20210618061045" },
+      { name: "Electro Titan", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/6/67/Avatar_Electro_Titan.png/revision/latest/scale-to-width-down/120?cb=20221010075230" },
+      { name: "Root Rider", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/0/0b/Avatar_Root_Rider.png/revision/latest/scale-to-width-down/120?cb=20231213214829" },
+      { name: "Thrower", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/d/da/Avatar_Thrower.png/revision/latest/scale-to-width-down/120?cb=20241123132731" },
+      { name: "Meteor Golem", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/0/01/Avatar_Meteor_Golem.png/revision/latest/scale-to-width-down/120?cb=20251014075046" },
+
+      // Lính Hắc Tiên Dược (Dark Elixir)
+      { name: "Minion", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/3/3b/Avatar_Minion.png/revision/latest/scale-to-width-down/120?cb=20170525070405" },
+      { name: "Hog Rider", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/e/e9/Avatar_Hog_Rider.png/revision/latest/scale-to-width-down/120?cb=20200913195505" },
+      { name: "Valkyrie", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/3/31/Avatar_Valkyrie.png/revision/latest/scale-to-width-down/120?cb=20170525070543" },
+      { name: "Golem", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/4/44/Avatar_Golem.png/revision/latest/scale-to-width-down/120?cb=20170525070403" },
+      { name: "Witch", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/90/Avatar_Witch.png/revision/latest/scale-to-width-down/120?cb=20170525070544" },
+      { name: "Lava Hound", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/1/1b/Avatar_Lava_Hound.png/revision/latest/scale-to-width-down/120?cb=20200913195616" },
+      { name: "Bowler", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/2/24/Avatar_Bowler.png/revision/latest/scale-to-width-down/120?cb=20170525070202" },
+      { name: "Ice Golem", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/7/79/Avatar_Ice_Golem.png/revision/latest/scale-to-width-down/120?cb=20200913014329" },
+      { name: "Headhunter", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/8/80/Avatar_Headhunter.png/revision/latest/scale-to-width-down/120?cb=20200913074511" },
+      { name: "Apprentice Warden", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/8/8b/Avatar_Apprentice_Warden.png/revision/latest/scale-to-width-down/120?cb=20230613002759" },
+      { name: "Druid", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/4/43/Avatar_Druid.png/revision/latest/scale-to-width-down/120?cb=20241003084537" },
+      { name: "Furnace", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/e/e0/Avatar_Furnace.png/revision/latest/scale-to-width-down/120?cb=20251117221817" },
+      { name: "Ruin Witch", category: "dark_elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/9/9e/Avatar_Ruin_Witch.png/revision/latest/scale-to-width-down/120?cb=20260615222037" },
+
+      // Lính Thợ Xây / Đảo (Builder Base)
+      { name: "Raged Barbarian", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/1/12/Avatar_Raged_Barbarian.png/revision/latest/scale-to-width-down/120?cb=20170525070542" },
+      { name: "Sneaky Archer", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/8/8c/Avatar_Sneaky_Archer.png/revision/latest/scale-to-width-down/120?cb=20170525070543" },
+      { name: "Boxer Giant", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/8/80/Avatar_Boxer_Giant.png/revision/latest/scale-to-width-down/120?cb=20170525070202" },
+      { name: "Beta Minion", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/d/d2/Avatar_Beta_Minion.png/revision/latest/scale-to-width-down/120?cb=20200913200500" },
+      { name: "Bomber", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/f/fc/Avatar_Bomber.png/revision/latest/scale-to-width-down/120?cb=20170525070201" },
+      { name: "Baby Dragon (BB)", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/7/7a/Avatar_Baby_Dragon.png/revision/latest/scale-to-width-down/120?cb=20200913014509" },
+      { name: "Cannon Cart", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/2/21/Avatar_Cannon_Cart.png/revision/latest/scale-to-width-down/120?cb=20230519102022" },
+      { name: "Night Witch", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/f/f8/Avatar_Night_Witch.png/revision/latest/scale-to-width-down/120?cb=20170525070541" },
+      { name: "Drop Ship", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/8/8b/Avatar_Drop_Ship.png/revision/latest/scale-to-width-down/120?cb=20170525070401" },
+      { name: "Power P.E.K.K.A", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/3/3b/Avatar_Power_P.E.K.K.A.png/revision/latest/scale-to-width-down/120?cb=20200913200749" },
+      { name: "Hog Glider", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/9/99/Avatar_Hog_Glider.png/revision/latest/scale-to-width-down/120?cb=20200913075411" },
+      { name: "Electrofire Wizard", category: "builder_base", img: "https://static.wikia.nocookie.net/clashofclans/images/6/6f/Avatar_Electrofire_Wizard.png/revision/latest/scale-to-width-down/120?cb=20230515203151" },
+
+      // Lính Huyền Thoại (Super Troops)
+      { name: "Super Barbarian", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/8/81/Avatar_Super_Barbarian.png/revision/latest/scale-to-width-down/137?cb=20200913075458" },
+      { name: "Super Archer", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/3/3a/Avatar_Super_Archer.png/revision/latest/scale-to-width-down/137?cb=20200913075643" },
+      { name: "Super Giant", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/6/6b/Avatar_Super_Giant.png/revision/latest/scale-to-width-down/137?cb=20200913075731" },
+      { name: "Sneaky Goblin", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/6/6e/Avatar_Sneaky_Goblin.png/revision/latest/scale-to-width-down/137?cb=20200913075807" },
+      { name: "Super Wall Breaker", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/c/ca/Avatar_Super_Wall_Breaker.png/revision/latest/scale-to-width-down/137?cb=20210101081415" },
+      { name: "Rocket Balloon", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/e/ed/Avatar_Rocket_Balloon.png/revision/latest/scale-to-width-down/137?cb=20210618061142" },
+      { name: "Super Wizard", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/f/f9/Avatar_Super_Wizard.png/revision/latest/scale-to-width-down/137?cb=20201207184826" },
+      { name: "Super Dragon", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/0/0f/Avatar_Super_Dragon.png/revision/latest/scale-to-width-down/137?cb=20211209194802" },
+      { name: "Inferno Dragon", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/0/0b/Avatar_Inferno_Dragon.png/revision/latest/scale-to-width-down/137?cb=20200913075841" },
+      { name: "Super Miner", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/b/b3/Avatar_Super_Miner.png/revision/latest/scale-to-width-down/137?cb=20221212211242" },
+      { name: "Super Yeti", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/5/5f/Avatar_Super_Yeti.png/revision/latest/scale-to-width-down/137?cb=20250326100831" },
+      { name: "Super Minion", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/b/be/Avatar_Super_Minion.png/revision/latest/scale-to-width-down/137?cb=20201013063740" },
+      { name: "Super Hog Rider", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/c/c4/Avatar_Super_Hog_Rider.png/revision/latest/scale-to-width-down/137?cb=20230613002801" },
+      { name: "Super Valkyrie", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/9/9e/Avatar_Super_Valkyrie.png/revision/latest/scale-to-width-down/137?cb=20201012035954" },
+      { name: "Super Witch", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/1/18/Avatar_Super_Witch.png/revision/latest/scale-to-width-down/137?cb=20200913075918" },
+      { name: "Ice Hound", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/b/b0/Avatar_Ice_Hound.png/revision/latest/scale-to-width-down/137?cb=20201207184828" },
+      { name: "Super Bowler", category: "super_troop", img: "https://static.wikia.nocookie.net/clashofclans/images/3/39/Avatar_Super_Bowler.png/revision/latest/scale-to-width-down/137?cb=20211005090727" }
+    ];
+
+    let currentCategory = 'all';
+
+    // Cấu trúc dữ liệu mặc định
+    let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
+      accounts: [
+        { id: "acc_1", name: "Nick Chính", cards: { "PEKKA": 2, "Dragon": 1 } },
+        { id: "acc_2", name: "Nick Phụ 1", cards: { "Barbarian": 4, "PEKKA": 1 } }
+      ]
+    };
+
+    function saveState() {
+      localStorage.setItem('coc_trade_data_img', JSON.stringify(state));
+    }
+
+    // Khởi tạo UI
+    function init() {
+      renderBank();
+      renderTiers();
+    }
+
+    // Thay đổi Tab phân loại
+    function setCategory(category, btnElement) {
+      currentCategory = category;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      filterCards();
+    }
+
+    // Hiển thị kho thẻ mẫu
+    function renderBank() {
+      const bank = document.getElementById('cardBank');
+      bank.innerHTML = '';
+      DEFAULT_CARDS.forEach(cardData => {
+        const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, null, false);
+        bank.appendChild(cardEl);
+      });
+    }
+
+    // Hiển thị danh sách Nick (Tiers)
+    function renderTiers() {
+      const container = document.getElementById('tierContainer');
+      container.innerHTML = '';
+
+      state.accounts.forEach((acc, index) => {
+        const row = document.createElement('div');
+        row.className = 'tier-row';
+        row.dataset.accId = acc.id;
+
+        // Cột Tên Nick & Nút Xóa
+        const label = document.createElement('div');
+        label.className = 'tier-label';
+        
+        const input = document.createElement('input');
+        input.value = acc.name;
+        input.onchange = (e) => {
+          acc.name = e.target.value;
+          saveState();
+        };
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-danger';
+        delBtn.style.padding = '4px 8px';
+        delBtn.style.fontSize = '0.75rem';
+        delBtn.innerText = 'Xóa Nick';
+        delBtn.onclick = () => deleteAccount(index);
+
+        label.appendChild(input);
+        label.appendChild(delBtn);
+
+        // Vùng thả thẻ (Dropzone)
+        const dropzone = document.createElement('div');
+        dropzone.className = 'tier-dropzone';
+        dropzone.dataset.accId = acc.id;
+
+        // Sự kiện Drag & Drop
+        dropzone.addEventListener('dragover', handleDragOver);
+        dropzone.addEventListener('dragleave', handleDragLeave);
+        dropzone.addEventListener('drop', handleDrop);
+
+        // Render danh sách thẻ nick đang sở hữu
+        Object.keys(acc.cards).forEach(cardName => {
+          const qty = acc.cards[cardName];
+          if (qty > 0) {
+            const cardData = DEFAULT_CARDS.find(c => c.name === cardName);
+            if(cardData) {
+              const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty);
+              dropzone.appendChild(cardEl);
+            }
+          }
+        });
+
+        row.appendChild(label);
+        row.appendChild(dropzone);
+        container.appendChild(row);
+      });
+
+      filterCards();
+    }
+
+    // Tạo Phần Tử Thẻ
+    function createCardElement(cardName, imgSrc, category, accId, inTier = false, qty = 1) {
+      const card = document.createElement('div');
+      card.className = `coc-card ${qty > 1 ? 'duplicate' : ''}`;
+      card.draggable = true;
+      card.dataset.cardName = cardName;
+      card.dataset.category = category;
+      if (accId) card.dataset.fromAccId = accId;
+
+      card.addEventListener('dragstart', handleDragStart);
+
+      let innerHTML = `<img src="${imgSrc}" alt="${cardName}" onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=Coc';">`;
+      innerHTML += `<span class="card-name">${cardName}</span>`;
+      
+      if (inTier) {
+        innerHTML += `<span class="card-badge ${qty > 1 ? 'dup-badge' : ''}">x${qty}</span>`;
+        innerHTML += `
+          <div class="card-controls">
+            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
+            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
+          </div>
+        `;
+      }
+
+      card.innerHTML = innerHTML;
+      return card;
+    }
+
+    /* Drag & Drop Logic */
+    let draggedCard = null;
+
+    function handleDragStart(e) {
+      const cardEl = e.currentTarget; // Lấy đúng element .coc-card dù click vào con của nó
+      draggedCard = {
+        name: cardEl.dataset.cardName,
+        fromAccId: cardEl.dataset.fromAccId || null
+      };
+      e.dataTransfer.setData('text/plain', cardEl.dataset.cardName); 
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      const dropzone = e.currentTarget;
+      dropzone.classList.remove('drag-over');
+
+      const targetAccId = dropzone.dataset.accId;
+      if (!targetAccId || !draggedCard) return;
+
+      const cardName = draggedCard.name;
+      const targetAcc = state.accounts.find(a => a.id === targetAccId);
+
+      targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
+
+      if (draggedCard.fromAccId && draggedCard.fromAccId !== targetAccId) {
+        const sourceAcc = state.accounts.find(a => a.id === draggedCard.fromAccId);
+        if (sourceAcc && sourceAcc.cards[cardName]) {
+          sourceAcc.cards[cardName]--;
+          if (sourceAcc.cards[cardName] <= 0) delete sourceAcc.cards[cardName];
+        }
+      }
+
+      saveState();
+      renderTiers();
+    }
+
+    /* Quản lý Số lượng & Nick */
+    function changeQty(accId, cardName, delta) {
+      const acc = state.accounts.find(a => a.id === accId);
+      if (!acc) return;
+
+      acc.cards[cardName] = (acc.cards[cardName] || 0) + delta;
+      if (acc.cards[cardName] <= 0) delete acc.cards[cardName];
+
+      saveState();
+      renderTiers();
+    }
+
+    function addAccount() {
+      const newId = 'acc_' + Date.now();
+      state.accounts.push({
+        id: newId,
+        name: `Nick ${state.accounts.length + 1}`,
+        cards: {}
+      });
+      saveState();
+      renderTiers();
+    }
+
+    function deleteAccount(index) {
+      if (confirm('Bạn có chắc muốn xóa Nick này không?')) {
+        state.accounts.splice(index, 1);
+        saveState();
+        renderTiers();
+      }
+    }
+
+    /* Bộ lọc tìm kiếm và phân loại theo tab */
+    function filterCards() {
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
+      const bankCards = document.querySelectorAll('#cardBank .coc-card');
+
+      bankCards.forEach(card => {
+        const name = card.dataset.cardName.toLowerCase();
+        const category = card.dataset.category;
+
+        const matchesQuery = name.includes(query);
+        const matchesCategory = (currentCategory === 'all') || (category === currentCategory);
+
+        if (matchesQuery && matchesCategory) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    /* Import & Export JSON */
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `coc_cards_img_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function triggerImport() {
+      document.getElementById('importInput').click();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData && Array.isArray(importedData.accounts)) {
+            state = importedData;
+            saveState(); 
+            renderTiers();
+            alert('Đã nhập dữ liệu thành công!');
+          } else {
+            alert('File JSON không đúng định dạng!');
+          }
+        } catch (err) {
+          alert('Lỗi đọc file JSON!');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Chạy khởi tạo
+    init();
+  </script>
+</body>
+</html>
