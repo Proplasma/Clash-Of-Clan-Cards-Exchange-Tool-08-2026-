@@ -138,16 +138,16 @@
       background: #2a3042;
       border: 2px solid var(--border-color);
       border-radius: 8px;
-      padding: 5px;
+      padding: 6px 4px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       cursor: grab;
       user-select: none;
       position: relative;
-      width: 80px;
-      height: 100px;
+      width: 82px;
+      height: 125px;
       box-sizing: border-box;
     }
 
@@ -155,9 +155,9 @@
 
     .coc-card img {
       max-width: 100%;
-      max-height: 60px;
+      max-height: 48px;
       object-fit: contain;
-      margin-bottom: 5px;
+      margin-bottom: 4px;
       pointer-events: none;
     }
 
@@ -167,24 +167,25 @@
     }
 
     .card-name {
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       text-align: center;
       color: #ccc;
       word-break: break-word;
       max-width: 100%;
+      line-height: 1.1;
       pointer-events: none;
     }
 
     .card-badge {
       background: var(--accent-color);
       color: #000;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: bold;
-      padding: 2px 6px;
+      padding: 1px 5px;
       border-radius: 10px;
       position: absolute;
-      top: -10px;
-      right: -10px;
+      top: -8px;
+      right: -8px;
       pointer-events: none;
     }
 
@@ -192,6 +193,32 @@
       background: var(--accent-green);
       color: #fff;
     }
+
+    /* Đẩy nút cộng trừ xuống sát đáy thẻ */
+    .card-controls {
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 2px;
+    }
+
+    .btn-qty {
+      background: #111;
+      color: #fff;
+      border: 1px solid var(--border-color);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+
+    .btn-qty:hover { opacity: 1; background-color: var(--accent-color); color: #000; }
 
     /* Tier Rows */
     .tier-container {
@@ -206,7 +233,7 @@
       border-radius: 10px;
       border: 1px solid var(--border-color);
       overflow: hidden;
-      min-height: 110px;
+      min-height: 130px;
       transition: border-color 0.2s, opacity 0.2s;
     }
 
@@ -257,14 +284,48 @@
       background: #0d0f17;
     }
 
-    .tier-dropzone {
+    .tier-dropzone-container {
       flex: 1;
-      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Bộ lọc mini riêng cho từng Nick */
+    .tier-mini-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
-      align-items: center;
-      background-color: rgba(0,0,0,0.15);
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .mini-tab {
+      background: #11141f;
+      color: #888;
+      border: 1px solid var(--border-color);
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .mini-tab.active {
+      background: var(--accent-color);
+      color: #000;
+      border-color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    .tier-dropzone {
+      flex: 1;
+      padding: 12px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      background-color: rgba(0,0,0,0.1);
+      min-height: 90px;
     }
 
     .tier-dropzone.drag-over {
@@ -272,31 +333,6 @@
       border: 2px dashed var(--accent-color);
     }
 
-    .card-controls {
-      display: flex;
-      gap: 4px;
-      position: absolute;
-      bottom: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .btn-qty {
-      background: #111;
-      color: #fff;
-      border: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      cursor: pointer;
-      opacity: 0.7;
-    }
-
-    .btn-qty:hover { opacity: 1; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -321,7 +357,7 @@
   <div class="bank-section" id="bankSection">
     <div class="bank-title">Kho Thẻ Mẫu (Kéo vào Nick để thêm / Kéo từ Nick trả về đây để trừ thẻ)</div>
     
-    <!-- Tab Phân Loại Lính -->
+    <!-- Tab Phân Loại Lính Tổng -->
     <div class="category-tabs" id="categoryTabs">
       <button class="tab-btn active" onclick="setCategory('all', this)">Tất cả</button>
       <button class="tab-btn" onclick="setCategory('elixir', this)">Lính thường</button>
@@ -337,7 +373,6 @@
   <div class="tier-container" id="tierContainer"></div>
 
   <script>
-    // Mảng dữ liệu thẻ tích hợp thuộc tính category
     const DEFAULT_CARDS = [
       // Lính Làng Chính (Elixir)
       { name: "Barbarian", category: "elixir", img: "https://static.wikia.nocookie.net/clashofclans/images/8/87/Avatar_Barbarian.png" },
@@ -411,16 +446,14 @@
 
     let currentCategory = 'all';
 
-    // Biến toàn cục phục vụ kéo thả
-    let draggedType = null; // 'CARD' hoặc 'ACCOUNT'
+    let draggedType = null;
     let draggedCard = null;
     let draggedAccIndex = null;
 
-    // Cấu trúc dữ liệu mặc định
     let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
       accounts: [
-        { id: "acc_1", name: "Nick Chính", cards: { "PEKKA": 2, "Dragon": 1 } },
-        { id: "acc_2", name: "Nick Phụ 1", cards: { "Barbarian": 4, "PEKKA": 1 } }
+        { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 2, "Dragon": 1 } },
+        { id: "acc_2", name: "Nick Phụ 1", filterCategory: "all", cards: { "Barbarian": 4, "PEKKA": 1 } }
       ]
     };
 
@@ -428,14 +461,12 @@
       localStorage.setItem('coc_trade_data_img', JSON.stringify(state));
     }
 
-    // Khởi tạo UI
     function init() {
       renderBank();
       setupBankDropzone();
       renderTiers();
     }
 
-    // Thiết lập sự kiện cho Kho Thẻ Mẫu nhận thả thẻ từ Nick quay về để trừ thẻ
     function setupBankDropzone() {
       const bankSec = document.getElementById('bankSection');
       
@@ -468,15 +499,22 @@
       });
     }
 
-    // Thay đổi Tab phân loại
     function setCategory(category, btnElement) {
       currentCategory = category;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#categoryTabs .tab-btn').forEach(b => b.classList.remove('active'));
       btnElement.classList.add('active');
       filterCards();
     }
 
-    // Hiển thị kho thẻ mẫu
+    function setAccCategory(accId, category) {
+      const acc = state.accounts.find(a => a.id === accId);
+      if (acc) {
+        acc.filterCategory = category;
+        saveState();
+        renderTiers();
+      }
+    }
+
     function renderBank() {
       const bank = document.getElementById('cardBank');
       bank.innerHTML = '';
@@ -486,22 +524,21 @@
       });
     }
 
-    // Hiển thị danh sách Nick (Tiers)
     function renderTiers() {
       const container = document.getElementById('tierContainer');
       container.innerHTML = '';
 
       state.accounts.forEach((acc, index) => {
+        if (!acc.filterCategory) acc.filterCategory = 'all';
+
         const row = document.createElement('div');
         row.className = 'tier-row';
         row.dataset.accId = acc.id;
         row.dataset.accIndex = index;
         row.draggable = true;
 
-        /* Xử lý kéo thả đổi thứ tự Nick (Rows) */
         row.addEventListener('dragstart', (e) => {
-          // Bỏ qua nếu người dùng nhấn vào thẻ lính bên trong dropzone
-          if (e.target.closest('.tier-dropzone') || e.target.closest('.coc-card')) {
+          if (e.target.closest('.tier-dropzone-container') || e.target.closest('.coc-card')) {
             return;
           }
           draggedType = 'ACCOUNT';
@@ -544,7 +581,6 @@
           }
         });
 
-        // Cột Tên Nick & Nút Xóa & Icon tay kéo
         const label = document.createElement('div');
         label.className = 'tier-label';
         label.title = "Kéo để thay đổi thứ tự vị trí Nick";
@@ -571,37 +607,63 @@
         label.appendChild(input);
         label.appendChild(delBtn);
 
-        // Vùng thả thẻ (Dropzone)
+        const dropzoneContainer = document.createElement('div');
+        dropzoneContainer.className = 'tier-dropzone-container';
+
+        const miniTabs = document.createElement('div');
+        miniTabs.className = 'tier-mini-tabs';
+        
+        const categories = [
+          { id: 'all', label: 'Tất cả' },
+          { id: 'elixir', label: 'Thường' },
+          { id: 'dark_elixir', label: 'Hắc tiên' },
+          { id: 'builder_base', label: 'Đảo' },
+          { id: 'super_troop', label: 'Super' }
+        ];
+
+        categories.forEach(cat => {
+          const miniBtn = document.createElement('button');
+          miniBtn.className = `mini-tab ${acc.filterCategory === cat.id ? 'active' : ''}`;
+          miniBtn.innerText = cat.label;
+          miniBtn.onclick = () => setAccCategory(acc.id, cat.id);
+          miniTabs.appendChild(miniBtn);
+        });
+
         const dropzone = document.createElement('div');
         dropzone.className = 'tier-dropzone';
         dropzone.dataset.accId = acc.id;
 
-        // Sự kiện Drag & Drop thẻ lính
         dropzone.addEventListener('dragover', handleCardDragOver);
         dropzone.addEventListener('dragleave', handleCardDragLeave);
         dropzone.addEventListener('drop', handleCardDrop);
 
-        // Render danh sách thẻ nick đang sở hữu
+        const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
         Object.keys(acc.cards).forEach(cardName => {
           const qty = acc.cards[cardName];
           if (qty > 0) {
             const cardData = DEFAULT_CARDS.find(c => c.name === cardName);
             if(cardData) {
-              const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty);
-              dropzone.appendChild(cardEl);
+              const matchesSearch = cardName.toLowerCase().includes(searchQuery);
+              const matchesAccCat = (acc.filterCategory === 'all') || (cardData.category === acc.filterCategory);
+
+              if (matchesSearch && matchesAccCat) {
+                const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty);
+                dropzone.appendChild(cardEl);
+              }
             }
           }
         });
 
+        dropzoneContainer.appendChild(miniTabs);
+        dropzoneContainer.appendChild(dropzone);
+
         row.appendChild(label);
-        row.appendChild(dropzone);
+        row.appendChild(dropzoneContainer);
         container.appendChild(row);
       });
-
-      filterCards();
     }
 
-    // Tạo Phần Tử Thẻ
     function createCardElement(cardName, imgSrc, category, accId, inTier = false, qty = 1) {
       const card = document.createElement('div');
       card.className = `coc-card ${qty > 1 ? 'duplicate' : ''}`;
@@ -619,8 +681,8 @@
         innerHTML += `<span class="card-badge ${qty > 1 ? 'dup-badge' : ''}">x${qty}</span>`;
         innerHTML += `
           <div class="card-controls">
-            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
             <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
+            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
           </div>
         `;
       }
@@ -629,9 +691,8 @@
       return card;
     }
 
-    /* Logic Kéo Thả Thẻ Lính */
     function handleCardDragStart(e) {
-      e.stopPropagation(); // Ngăn sự kiện kéo hàng (row drag) kích hoạt
+      e.stopPropagation();
       draggedType = 'CARD';
       const cardEl = e.currentTarget; 
 
@@ -668,18 +729,15 @@
       const targetAccId = dropzone.dataset.accId;
       if (!targetAccId || !draggedCard) return;
 
-      // Nếu kéo thả vào chính Nick cũ thì không xử lý
       if (draggedCard.fromAccId === targetAccId) return;
 
       const cardName = draggedCard.name;
       const targetAcc = state.accounts.find(a => a.id === targetAccId);
 
-      // Cộng 1 thẻ cho Nick nhận
       if (targetAcc) {
         targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
       }
 
-      // Trừ 1 thẻ ở Nick gốc (nếu kéo từ một Nick khác)
       if (draggedCard.fromAccId) {
         const sourceAcc = state.accounts.find(a => a.id === draggedCard.fromAccId);
         if (sourceAcc && sourceAcc.cards[cardName]) {
@@ -694,7 +752,6 @@
       renderTiers();
     }
 
-    /* Quản lý Số lượng & Nick */
     function changeQty(accId, cardName, delta) {
       const acc = state.accounts.find(a => a.id === accId);
       if (!acc) return;
@@ -711,6 +768,7 @@
       state.accounts.push({
         id: newId,
         name: `Nick ${state.accounts.length + 1}`,
+        filterCategory: 'all',
         cards: {}
       });
       saveState();
@@ -725,7 +783,6 @@
       }
     }
 
-    /* Bộ lọc tìm kiếm và phân loại theo tab */
     function filterCards() {
       const query = document.getElementById('searchInput').value.toLowerCase().trim();
       const bankCards = document.querySelectorAll('#cardBank .coc-card');
@@ -743,9 +800,10 @@
           card.classList.add('hidden');
         }
       });
+
+      renderTiers();
     }
 
-    /* Import & Export JSON */
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -783,7 +841,6 @@
       reader.readAsText(file);
     }
 
-    // Chạy khởi tạo
     init();
   </script>
 </body>
