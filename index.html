@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoC Card Trade Manager - Phân Loại Lính</title>
+  <title>CoC Card Trade Manager - Phân Loại & Kéo Thả</title>
   <style>
     :root {
       --bg-color: #12141d;
@@ -85,6 +85,12 @@
       border-radius: 10px;
       border: 1px solid var(--border-color);
       margin-bottom: 25px;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .bank-section.drag-over {
+      border-color: #f44336;
+      background-color: rgba(244, 67, 54, 0.1);
     }
 
     .bank-title {
@@ -152,7 +158,7 @@
       max-height: 60px;
       object-fit: contain;
       margin-bottom: 5px;
-      pointer-events: none; /* Tránh cản trở sự kiện kéo thả */
+      pointer-events: none;
     }
 
     .coc-card.duplicate {
@@ -166,7 +172,7 @@
       color: #ccc;
       word-break: break-word;
       max-width: 100%;
-      pointer-events: none; /* Tránh cản trở sự kiện kéo thả */
+      pointer-events: none;
     }
 
     .card-badge {
@@ -201,6 +207,16 @@
       border: 1px solid var(--border-color);
       overflow: hidden;
       min-height: 110px;
+      transition: border-color 0.2s, opacity 0.2s;
+    }
+
+    .tier-row.dragging-row {
+      opacity: 0.4;
+    }
+
+    .tier-row.row-drag-over {
+      border: 2px dashed var(--accent-color);
+      background-color: rgba(255, 152, 0, 0.05);
     }
 
     .tier-label {
@@ -214,6 +230,16 @@
       gap: 8px;
       border-right: 2px solid var(--border-color);
       flex-shrink: 0;
+      cursor: grab;
+    }
+
+    .tier-label:active { cursor: grabbing; }
+
+    .row-handle {
+      font-size: 1.2rem;
+      color: #666;
+      user-select: none;
+      line-height: 1;
     }
 
     .tier-label input {
@@ -292,8 +318,8 @@
   </div>
 
   <!-- Kho Thẻ Mẫu -->
-  <div class="bank-section">
-    <div class="bank-title">Kho Thẻ Mẫu (Kéo thả ảnh vào các Nick)</div>
+  <div class="bank-section" id="bankSection">
+    <div class="bank-title">Kho Thẻ Mẫu (Kéo vào Nick để thêm / Kéo từ Nick trả về đây để trừ thẻ)</div>
     
     <!-- Tab Phân Loại Lính -->
     <div class="category-tabs" id="categoryTabs">
@@ -385,6 +411,11 @@
 
     let currentCategory = 'all';
 
+    // Biến toàn cục phục vụ kéo thả
+    let draggedType = null; // 'CARD' hoặc 'ACCOUNT'
+    let draggedCard = null;
+    let draggedAccIndex = null;
+
     // Cấu trúc dữ liệu mặc định
     let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
       accounts: [
@@ -400,7 +431,41 @@
     // Khởi tạo UI
     function init() {
       renderBank();
+      setupBankDropzone();
       renderTiers();
+    }
+
+    // Thiết lập sự kiện cho Kho Thẻ Mẫu nhận thả thẻ từ Nick quay về để trừ thẻ
+    function setupBankDropzone() {
+      const bankSec = document.getElementById('bankSection');
+      
+      bankSec.addEventListener('dragover', (e) => {
+        if (draggedType === 'CARD' && draggedCard && draggedCard.fromAccId) {
+          e.preventDefault();
+          bankSec.classList.add('drag-over');
+        }
+      });
+
+      bankSec.addEventListener('dragleave', () => {
+        bankSec.classList.remove('drag-over');
+      });
+
+      bankSec.addEventListener('drop', (e) => {
+        if (draggedType === 'CARD' && draggedCard && draggedCard.fromAccId) {
+          e.preventDefault();
+          bankSec.classList.remove('drag-over');
+
+          const sourceAcc = state.accounts.find(a => a.id === draggedCard.fromAccId);
+          if (sourceAcc && sourceAcc.cards[draggedCard.name]) {
+            sourceAcc.cards[draggedCard.name]--;
+            if (sourceAcc.cards[draggedCard.name] <= 0) {
+              delete sourceAcc.cards[draggedCard.name];
+            }
+            saveState();
+            renderTiers();
+          }
+        }
+      });
     }
 
     // Thay đổi Tab phân loại
@@ -430,11 +495,64 @@
         const row = document.createElement('div');
         row.className = 'tier-row';
         row.dataset.accId = acc.id;
+        row.dataset.accIndex = index;
+        row.draggable = true;
 
-        // Cột Tên Nick & Nút Xóa
+        /* Xử lý kéo thả đổi thứ tự Nick (Rows) */
+        row.addEventListener('dragstart', (e) => {
+          // Bỏ qua nếu người dùng nhấn vào thẻ lính bên trong dropzone
+          if (e.target.closest('.tier-dropzone') || e.target.closest('.coc-card')) {
+            return;
+          }
+          draggedType = 'ACCOUNT';
+          draggedAccIndex = index;
+          e.dataTransfer.setData('text/plain', 'account:' + index);
+          row.classList.add('dragging-row');
+        });
+
+        row.addEventListener('dragend', () => {
+          row.classList.remove('dragging-row');
+          document.querySelectorAll('.tier-row').forEach(r => r.classList.remove('row-drag-over'));
+        });
+
+        row.addEventListener('dragover', (e) => {
+          if (draggedType === 'ACCOUNT' && draggedAccIndex !== index) {
+            e.preventDefault();
+            row.classList.add('row-drag-over');
+          }
+        });
+
+        row.addEventListener('dragleave', () => {
+          if (draggedType === 'ACCOUNT') {
+            row.classList.remove('row-drag-over');
+          }
+        });
+
+        row.addEventListener('drop', (e) => {
+          if (draggedType === 'ACCOUNT') {
+            e.preventDefault();
+            e.stopPropagation();
+            row.classList.remove('row-drag-over');
+
+            const targetIndex = index;
+            if (draggedAccIndex !== null && draggedAccIndex !== targetIndex) {
+              const movedAccount = state.accounts.splice(draggedAccIndex, 1)[0];
+              state.accounts.splice(targetIndex, 0, movedAccount);
+              saveState();
+              renderTiers();
+            }
+          }
+        });
+
+        // Cột Tên Nick & Nút Xóa & Icon tay kéo
         const label = document.createElement('div');
         label.className = 'tier-label';
-        
+        label.title = "Kéo để thay đổi thứ tự vị trí Nick";
+
+        const handleIcon = document.createElement('span');
+        handleIcon.className = 'row-handle';
+        handleIcon.innerHTML = '⋮⋮';
+
         const input = document.createElement('input');
         input.value = acc.name;
         input.onchange = (e) => {
@@ -449,6 +567,7 @@
         delBtn.innerText = 'Xóa Nick';
         delBtn.onclick = () => deleteAccount(index);
 
+        label.appendChild(handleIcon);
         label.appendChild(input);
         label.appendChild(delBtn);
 
@@ -457,10 +576,10 @@
         dropzone.className = 'tier-dropzone';
         dropzone.dataset.accId = acc.id;
 
-        // Sự kiện Drag & Drop
-        dropzone.addEventListener('dragover', handleDragOver);
-        dropzone.addEventListener('dragleave', handleDragLeave);
-        dropzone.addEventListener('drop', handleDrop);
+        // Sự kiện Drag & Drop thẻ lính
+        dropzone.addEventListener('dragover', handleCardDragOver);
+        dropzone.addEventListener('dragleave', handleCardDragLeave);
+        dropzone.addEventListener('drop', handleCardDrop);
 
         // Render danh sách thẻ nick đang sở hữu
         Object.keys(acc.cards).forEach(cardName => {
@@ -491,7 +610,7 @@
       card.dataset.category = category;
       if (accId) card.dataset.fromAccId = accId;
 
-      card.addEventListener('dragstart', handleDragStart);
+      card.addEventListener('dragstart', handleCardDragStart);
 
       let innerHTML = `<img src="${imgSrc}" alt="${cardName}" onerror="this.onerror=null; this.src='https://via.placeholder.com/60?text=Coc';">`;
       innerHTML += `<span class="card-name">${cardName}</span>`;
@@ -510,45 +629,64 @@
       return card;
     }
 
-    /* Drag & Drop Logic */
-    let draggedCard = null;
+    /* Logic Kéo Thả Thẻ Lính */
+    function handleCardDragStart(e) {
+      e.stopPropagation(); // Ngăn sự kiện kéo hàng (row drag) kích hoạt
+      draggedType = 'CARD';
+      const cardEl = e.currentTarget; 
 
-    function handleDragStart(e) {
-      const cardEl = e.currentTarget; // Lấy đúng element .coc-card dù click vào con của nó
       draggedCard = {
         name: cardEl.dataset.cardName,
         fromAccId: cardEl.dataset.fromAccId || null
       };
+
       e.dataTransfer.setData('text/plain', cardEl.dataset.cardName); 
     }
 
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.classList.add('drag-over');
+    function handleCardDragOver(e) {
+      if (draggedType === 'CARD') {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+      }
     }
 
-    function handleDragLeave(e) {
-      e.currentTarget.classList.remove('drag-over');
+    function handleCardDragLeave(e) {
+      if (draggedType === 'CARD') {
+        e.currentTarget.classList.remove('drag-over');
+      }
     }
 
-    function handleDrop(e) {
+    function handleCardDrop(e) {
+      if (draggedType !== 'CARD') return;
+
       e.preventDefault();
+      e.stopPropagation();
+
       const dropzone = e.currentTarget;
       dropzone.classList.remove('drag-over');
 
       const targetAccId = dropzone.dataset.accId;
       if (!targetAccId || !draggedCard) return;
 
+      // Nếu kéo thả vào chính Nick cũ thì không xử lý
+      if (draggedCard.fromAccId === targetAccId) return;
+
       const cardName = draggedCard.name;
       const targetAcc = state.accounts.find(a => a.id === targetAccId);
 
-      targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
+      // Cộng 1 thẻ cho Nick nhận
+      if (targetAcc) {
+        targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
+      }
 
-      if (draggedCard.fromAccId && draggedCard.fromAccId !== targetAccId) {
+      // Trừ 1 thẻ ở Nick gốc (nếu kéo từ một Nick khác)
+      if (draggedCard.fromAccId) {
         const sourceAcc = state.accounts.find(a => a.id === draggedCard.fromAccId);
         if (sourceAcc && sourceAcc.cards[cardName]) {
           sourceAcc.cards[cardName]--;
-          if (sourceAcc.cards[cardName] <= 0) delete sourceAcc.cards[cardName];
+          if (sourceAcc.cards[cardName] <= 0) {
+            delete sourceAcc.cards[cardName];
+          }
         }
       }
 
