@@ -347,6 +347,12 @@
       border-color: var(--accent-green);
     }
 
+    .mini-tab.tab-trade.active {
+      background: #9c27b0;
+      color: #fff;
+      border-color: #9c27b0;
+    }
+
     .tier-dropzone {
       flex: 1;
       padding: 12px 15px;
@@ -650,7 +656,8 @@
           { id: 'builder_base', label: 'Đảo' },
           { id: 'super_troop', label: 'Super' },
           { id: 'missing', label: '❌ Còn thiếu', customClass: 'tab-missing' },
-          { id: 'surplus', label: '♻️ Thẻ thừa (>1)', customClass: 'tab-surplus' }
+          { id: 'surplus', label: '♻️ Thẻ thừa (>1)', customClass: 'tab-surplus' },
+          { id: 'trade', label: '🔄 Trao đổi', customClass: 'tab-trade' }
         ];
 
         categories.forEach(cat => {
@@ -695,6 +702,24 @@
                   const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty, false);
                   dropzone.appendChild(cardEl);
                 }
+              }
+            }
+          });
+        } else if (acc.filterCategory === 'trade') {
+          // HIỂN THỊ CẢ THẺ THỪA (>1) VÀ THẺ THIẾU (=0) THEO THỨ TỰ MẶC ĐỊNH
+          DEFAULT_CARDS.forEach(cardData => {
+            const qty = acc.cards[cardData.name] || 0;
+            const matchesSearch = cardData.name.toLowerCase().includes(searchQuery);
+
+            if (matchesSearch) {
+              if (qty === 0) {
+                // Thẻ thiếu (hiển thị màu xám)
+                const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, 0, true);
+                dropzone.appendChild(cardEl);
+              } else if (qty > 1) {
+                // Thẻ thừa (>1)
+                const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, qty, false);
+                dropzone.appendChild(cardEl);
               }
             }
           });
