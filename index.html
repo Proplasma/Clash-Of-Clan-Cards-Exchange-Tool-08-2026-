@@ -159,6 +159,19 @@
       object-fit: contain;
       margin-bottom: 4px;
       pointer-events: none;
+      transition: filter 0.2s;
+    }
+
+    /* Đèn xám đen cho lính còn thiếu */
+    .coc-card.missing {
+      border-style: dashed;
+      border-color: #555;
+      background: #181b26;
+    }
+
+    .coc-card.missing img {
+      filter: grayscale(100%);
+      opacity: 0.5;
     }
 
     .coc-card.duplicate {
@@ -192,6 +205,11 @@
     .card-badge.dup-badge {
       background: var(--accent-green);
       color: #fff;
+    }
+
+    .card-badge.missing-badge {
+      background: #555;
+      color: #aaa;
     }
 
     /* Đẩy nút cộng trừ xuống sát đáy thẻ */
@@ -315,6 +333,12 @@
       color: #000;
       border-color: var(--accent-color);
       font-weight: bold;
+    }
+
+    .mini-tab.tab-missing.active {
+      background: #f44336;
+      color: #fff;
+      border-color: #f44336;
     }
 
     .tier-dropzone {
@@ -618,12 +642,13 @@
           { id: 'elixir', label: 'Thường' },
           { id: 'dark_elixir', label: 'Hắc tiên' },
           { id: 'builder_base', label: 'Đảo' },
-          { id: 'super_troop', label: 'Super' }
+          { id: 'super_troop', label: 'Super' },
+          { id: 'missing', label: '❌ Còn thiếu', isMissingTab: true }
         ];
 
         categories.forEach(cat => {
           const miniBtn = document.createElement('button');
-          miniBtn.className = `mini-tab ${acc.filterCategory === cat.id ? 'active' : ''}`;
+          miniBtn.className = `mini-tab ${cat.isMissingTab ? 'tab-missing' : ''} ${acc.filterCategory === cat.id ? 'active' : ''}`;
           miniBtn.innerText = cat.label;
           miniBtn.onclick = () => setAccCategory(acc.id, cat.id);
           miniTabs.appendChild(miniBtn);
@@ -639,21 +664,36 @@
 
         const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
-        Object.keys(acc.cards).forEach(cardName => {
-          const qty = acc.cards[cardName];
-          if (qty > 0) {
-            const cardData = DEFAULT_CARDS.find(c => c.name === cardName);
-            if(cardData) {
-              const matchesSearch = cardName.toLowerCase().includes(searchQuery);
-              const matchesAccCat = (acc.filterCategory === 'all') || (cardData.category === acc.filterCategory);
-
-              if (matchesSearch && matchesAccCat) {
-                const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty);
+        if (acc.filterCategory === 'missing') {
+          // HIỂN THỊ CÁC THẺ CÒN THIẾU (ĐEN TRẮNG)
+          DEFAULT_CARDS.forEach(cardData => {
+            const qty = acc.cards[cardData.name] || 0;
+            if (qty === 0) {
+              const matchesSearch = cardData.name.toLowerCase().includes(searchQuery);
+              if (matchesSearch) {
+                const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, 0, true);
                 dropzone.appendChild(cardEl);
               }
             }
-          }
-        });
+          });
+        } else {
+          // HIỂN THỊ CÁC THẺ ĐÃ SỞ HỮU THÔNG THƯỜNG
+          Object.keys(acc.cards).forEach(cardName => {
+            const qty = acc.cards[cardName];
+            if (qty > 0) {
+              const cardData = DEFAULT_CARDS.find(c => c.name === cardName);
+              if(cardData) {
+                const matchesSearch = cardName.toLowerCase().includes(searchQuery);
+                const matchesAccCat = (acc.filterCategory === 'all') || (cardData.category === acc.filterCategory);
+
+                if (matchesSearch && matchesAccCat) {
+                  const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty, false);
+                  dropzone.appendChild(cardEl);
+                }
+              }
+            }
+          });
+        }
 
         dropzoneContainer.appendChild(miniTabs);
         dropzoneContainer.appendChild(dropzone);
@@ -664,9 +704,9 @@
       });
     }
 
-    function createCardElement(cardName, imgSrc, category, accId, inTier = false, qty = 1) {
+    function createCardElement(cardName, imgSrc, category, accId, inTier = false, qty = 1, isMissing = false) {
       const card = document.createElement('div');
-      card.className = `coc-card ${qty > 1 ? 'duplicate' : ''}`;
+      card.className = `coc-card ${qty > 1 ? 'duplicate' : ''} ${isMissing ? 'missing' : ''}`;
       card.draggable = true;
       card.dataset.cardName = cardName;
       card.dataset.category = category;
@@ -678,13 +718,22 @@
       innerHTML += `<span class="card-name">${cardName}</span>`;
       
       if (inTier) {
-        innerHTML += `<span class="card-badge ${qty > 1 ? 'dup-badge' : ''}">x${qty}</span>`;
-        innerHTML += `
-          <div class="card-controls">
-            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
-            <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
-          </div>
-        `;
+        if (isMissing) {
+          innerHTML += `<span class="card-badge missing-badge">0</span>`;
+          innerHTML += `
+            <div class="card-controls">
+              <button class="btn-qty" title="Thêm lính này vào Nick" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
+            </div>
+          `;
+        } else {
+          innerHTML += `<span class="card-badge ${qty > 1 ? 'dup-badge' : ''}">x${qty}</span>`;
+          innerHTML += `
+            <div class="card-controls">
+              <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
+              <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
+            </div>
+          `;
+        }
       }
 
       card.innerHTML = innerHTML;
