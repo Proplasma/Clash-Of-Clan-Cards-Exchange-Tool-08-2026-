@@ -341,6 +341,12 @@
       border-color: #f44336;
     }
 
+    .mini-tab.tab-surplus.active {
+      background: var(--accent-green);
+      color: #fff;
+      border-color: var(--accent-green);
+    }
+
     .tier-dropzone {
       flex: 1;
       padding: 12px 15px;
@@ -476,7 +482,7 @@
 
     let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
       accounts: [
-        { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 2, "Dragon": 1 } },
+        { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 3, "Dragon": 1 } },
         { id: "acc_2", name: "Nick Phụ 1", filterCategory: "all", cards: { "Barbarian": 4, "PEKKA": 1 } }
       ]
     };
@@ -643,12 +649,13 @@
           { id: 'dark_elixir', label: 'Hắc tiên' },
           { id: 'builder_base', label: 'Đảo' },
           { id: 'super_troop', label: 'Super' },
-          { id: 'missing', label: '❌ Còn thiếu', isMissingTab: true }
+          { id: 'missing', label: '❌ Còn thiếu', customClass: 'tab-missing' },
+          { id: 'surplus', label: '♻️ Thẻ thừa (>1)', customClass: 'tab-surplus' }
         ];
 
         categories.forEach(cat => {
           const miniBtn = document.createElement('button');
-          miniBtn.className = `mini-tab ${cat.isMissingTab ? 'tab-missing' : ''} ${acc.filterCategory === cat.id ? 'active' : ''}`;
+          miniBtn.className = `mini-tab ${cat.customClass || ''} ${acc.filterCategory === cat.id ? 'active' : ''}`;
           miniBtn.innerText = cat.label;
           miniBtn.onclick = () => setAccCategory(acc.id, cat.id);
           miniTabs.appendChild(miniBtn);
@@ -673,6 +680,21 @@
               if (matchesSearch) {
                 const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, 0, true);
                 dropzone.appendChild(cardEl);
+              }
+            }
+          });
+        } else if (acc.filterCategory === 'surplus') {
+          // HIỂN THỊ CÁC THẺ THỪA (SỐ LƯỢNG >1)
+          Object.keys(acc.cards).forEach(cardName => {
+            const qty = acc.cards[cardName];
+            if (qty > 1) {
+              const cardData = DEFAULT_CARDS.find(c => c.name === cardName);
+              if (cardData) {
+                const matchesSearch = cardName.toLowerCase().includes(searchQuery);
+                if (matchesSearch) {
+                  const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty, false);
+                  dropzone.appendChild(cardEl);
+                }
               }
             }
           });
