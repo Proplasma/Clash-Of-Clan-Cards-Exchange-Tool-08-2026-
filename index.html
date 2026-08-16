@@ -10,6 +10,7 @@
       --card-bg: #1e2230;
       --accent-color: #ff9800;
       --accent-green: #4caf50;
+      --accent-blue: #2196f3;
       --text-color: #f1f5f9;
       --border-color: #333a4d;
     }
@@ -75,13 +76,13 @@
     button:hover { opacity: 0.85; }
     .btn-primary { background-color: var(--accent-color); color: #000; }
     .btn-success { background-color: var(--accent-green); color: #fff; }
-    .btn-info { background-color: #2196f3; color: #fff; }
+    .btn-info { background-color: var(--accent-blue); color: #fff; }
     .btn-danger { background-color: #f44336; color: #fff; }
 
     /* Find Surplus Panel */
     .find-panel {
       background: var(--card-bg);
-      border: 2px solid #2196f3;
+      border: 2px solid var(--accent-blue);
       border-radius: 10px;
       padding: 15px;
       margin-bottom: 20px;
@@ -105,7 +106,7 @@
     .find-panel-header h3 {
       margin: 0;
       font-size: 1.05rem;
-      color: #2196f3;
+      color: var(--accent-blue);
     }
 
     .find-panel-body {
@@ -116,7 +117,7 @@
     }
 
     .find-dropzone {
-      border: 2px dashed #2196f3;
+      border: 2px dashed var(--accent-blue);
       border-radius: 8px;
       width: 110px;
       height: 130px;
@@ -212,12 +213,14 @@
       padding: 8px 14px;
       font-size: 0.85rem;
       border-radius: 20px;
+      cursor: pointer;
     }
 
     .tab-btn.active {
       background: var(--accent-color);
       color: #000;
       border-color: var(--accent-color);
+      font-weight: bold;
     }
 
     .card-pool {
@@ -243,6 +246,7 @@
       width: 82px;
       height: 125px;
       box-sizing: border-box;
+      transition: all 0.2s;
     }
 
     .coc-card:active { cursor: grabbing; }
@@ -256,20 +260,29 @@
       transition: filter 0.2s;
     }
 
-    /* Đèn xám đen cho lính còn thiếu */
+    /* 1. Thẻ chưa có: Xám viền đứt */
     .coc-card.missing {
-      border-style: dashed;
-      border-color: #555;
+      border: 2px dashed #666 !important;
       background: #181b26;
+      box-shadow: none !important;
     }
 
     .coc-card.missing img {
       filter: grayscale(100%);
-      opacity: 0.5;
+      opacity: 0.4;
     }
 
+    /* 2. Thẻ có x1: Viền xanh dương */
+    .coc-card.single {
+      border-color: var(--accent-blue) !important;
+      border-style: solid !important;
+      box-shadow: 0 0 6px rgba(33, 150, 243, 0.4);
+    }
+
+    /* 3. Thẻ có >1: Viền xanh lá */
     .coc-card.duplicate {
-      border-color: var(--accent-green);
+      border-color: var(--accent-green) !important;
+      border-style: solid !important;
       box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
     }
 
@@ -296,6 +309,11 @@
       pointer-events: none;
     }
 
+    .card-badge.single-badge {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
     .card-badge.dup-badge {
       background: var(--accent-green);
       color: #fff;
@@ -306,7 +324,6 @@
       color: #aaa;
     }
 
-    /* Đẩy nút cộng trừ xuống sát đáy thẻ */
     .card-controls {
       display: flex;
       gap: 6px;
@@ -447,6 +464,12 @@
       border-color: #9c27b0;
     }
 
+    .mini-tab.tab-stats.active {
+      background: var(--accent-blue);
+      color: #fff;
+      border-color: var(--accent-blue);
+    }
+
     .tier-dropzone {
       flex: 1;
       padding: 12px 15px;
@@ -475,7 +498,6 @@
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="🔍 Lọc theo tên thẻ (vd: Pekka, Dragon, Rồng)..." oninput="filterCards()">
     </div>
-    <!-- Ô chức năng Tìm lính theo nick ngay sau ô tìm kiếm -->
     <button class="btn-info" onclick="toggleFindSurplusPanel()">🔍 Tìm lính theo nick</button>
     <div class="btn-group">
       <button class="btn-primary" onclick="addAccount()">+ Thêm Nick</button>
@@ -485,7 +507,7 @@
     </div>
   </div>
 
-  <!-- Bảng tra cứu Nick thừa lính (mở ra khi nhấn nút) -->
+  <!-- Bảng tra cứu Nick thừa lính -->
   <div id="findSurplusPanel" class="find-panel hidden">
     <div class="find-panel-header">
       <h3>🔍 Tra cứu Nick đang thừa thẻ lính (>1 thẻ)</h3>
@@ -505,7 +527,6 @@
   <div class="bank-section" id="bankSection">
     <div class="bank-title">Kho Thẻ Mẫu (Kéo vào Nick để thêm / Kéo từ Nick trả về đây để trừ thẻ)</div>
     
-    <!-- Tab Phân Loại Lính Tổng -->
     <div class="category-tabs" id="categoryTabs">
       <button class="tab-btn active" onclick="setCategory('all', this)">Tất cả</button>
       <button class="tab-btn" onclick="setCategory('elixir', this)">Lính thường</button>
@@ -617,7 +638,6 @@
       renderTiers();
     }
 
-    /* Logic cho Ô Bảng Tìm lính theo nick */
     function toggleFindSurplusPanel() {
       const panel = document.getElementById('findSurplusPanel');
       panel.classList.toggle('hidden');
@@ -838,6 +858,7 @@
         
         const categories = [
           { id: 'all', label: 'Tất cả' },
+          { id: 'stats', label: '📊 Thống kê', customClass: 'tab-stats' },
           { id: 'elixir', label: 'Thường' },
           { id: 'dark_elixir', label: 'Hắc tiên' },
           { id: 'builder_base', label: 'Đảo' },
@@ -865,7 +886,18 @@
 
         const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
-        if (acc.filterCategory === 'missing') {
+        // TAB THỐNG KÊ (MỚI BỔ SUNG)
+        if (acc.filterCategory === 'stats') {
+          DEFAULT_CARDS.forEach(cardData => {
+            const matchesSearch = cardData.name.toLowerCase().includes(searchQuery);
+            if (matchesSearch) {
+              const qty = acc.cards[cardData.name] || 0;
+              const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, qty, qty === 0);
+              dropzone.appendChild(cardEl);
+            }
+          });
+        }
+        else if (acc.filterCategory === 'missing') {
           DEFAULT_CARDS.forEach(cardData => {
             const qty = acc.cards[cardData.name] || 0;
             if (qty === 0) {
@@ -936,7 +968,18 @@
 
     function createCardElement(cardName, imgSrc, category, accId, inTier = false, qty = 1, isMissing = false) {
       const card = document.createElement('div');
-      card.className = `coc-card ${qty > 1 ? 'duplicate' : ''} ${isMissing ? 'missing' : ''}`;
+      
+      // Định dạng Class theo yêu cầu hiển thị
+      let statusClass = '';
+      if (isMissing || qty === 0) {
+        statusClass = 'missing';
+      } else if (qty === 1) {
+        statusClass = 'single';
+      } else if (qty > 1) {
+        statusClass = 'duplicate';
+      }
+
+      card.className = `coc-card ${statusClass}`;
       card.draggable = true;
       card.dataset.cardName = cardName;
       card.dataset.category = category;
@@ -948,15 +991,23 @@
       innerHTML += `<span class="card-name">${cardName}</span>`;
       
       if (inTier) {
-        if (isMissing) {
+        if (isMissing || qty === 0) {
           innerHTML += `<span class="card-badge missing-badge">0</span>`;
           innerHTML += `
             <div class="card-controls">
               <button class="btn-qty" title="Thêm lính này vào Nick" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
             </div>
           `;
+        } else if (qty === 1) {
+          innerHTML += `<span class="card-badge single-badge">x1</span>`;
+          innerHTML += `
+            <div class="card-controls">
+              <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
+              <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', 1)">+</button>
+            </div>
+          `;
         } else {
-          innerHTML += `<span class="card-badge ${qty > 1 ? 'dup-badge' : ''}">x${qty}</span>`;
+          innerHTML += `<span class="card-badge dup-badge">x${qty}</span>`;
           innerHTML += `
             <div class="card-controls">
               <button class="btn-qty" onclick="changeQty('${accId}', '${cardName}', -1)">-</button>
