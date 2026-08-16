@@ -361,12 +361,12 @@
     .tier-label {
       width: 180px;
       background: #161925;
-      padding: 15px;
+      padding: 12px 10px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       border-right: 2px solid var(--border-color);
       flex-shrink: 0;
       cursor: grab;
@@ -394,6 +394,34 @@
     .tier-label input:hover, .tier-label input:focus {
       border-color: var(--border-color);
       background: #0d0f17;
+    }
+
+    /* CSS cho phần thông số dưới Tên Nick */
+    .nick-stats-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.73rem;
+      color: #a0aec0;
+      text-align: center;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 6px 4px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 2px 0;
+    }
+
+    .nick-stats-info span {
+      white-space: nowrap;
+    }
+
+    .nick-stats-info strong {
+      color: var(--accent-green);
+    }
+
+    .nick-stats-info strong.collected {
+      color: var(--accent-blue);
     }
 
     .tier-dropzone-container {
@@ -860,6 +888,19 @@
           if (selectedSurplusCard) renderFindSurplusResults();
         };
 
+        // --- CẬP NHẬT: TÍNH TOÁN CÁC THÔNG SỐ CỦA NICK ---
+        const totalCardsInGame = DEFAULT_CARDS.length;
+        const ownedCardTypesCount = Object.keys(acc.cards).filter(cName => acc.cards[cName] >= 1).length;
+        const surplusCardTypesCount = Object.keys(acc.cards).filter(cName => acc.cards[cName] >= 2).length;
+
+        const statsDiv = document.createElement('div');
+        statsDiv.className = 'nick-stats-info';
+        statsDiv.innerHTML = `
+          <span>Số Loại thẻ thừa: <strong>${surplusCardTypesCount}</strong></span>
+          <span>Thẻ Đã Sưu Tập: <strong class="collected">${ownedCardTypesCount}/${totalCardsInGame}</strong></span>
+        `;
+        // -----------------------------------------------
+
         const delBtn = document.createElement('button');
         delBtn.className = 'btn-danger';
         delBtn.style.padding = '4px 8px';
@@ -869,6 +910,7 @@
 
         label.appendChild(handleIcon);
         label.appendChild(input);
+        label.appendChild(statsDiv); // Thêm phần thống kê vào ngay dưới input tên nick
         label.appendChild(delBtn);
 
         const dropzoneContainer = document.createElement('div');
