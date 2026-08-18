@@ -288,6 +288,25 @@
       transition: all 0.2s;
     }
 
+    /* MÀU NỀN THEO PHÂN LOẠI LÍNH */
+    .coc-card[data-category="elixir"] {
+      background: #ffb6c1 !important; /* Lính Thường: Hồng */
+    }
+    .coc-card[data-category="dark_elixir"] {
+      background: #e6e6fa !important; /* Lính Hắc Tiên: Tím Nhạt */
+    }
+    .coc-card[data-category="builder_base"] {
+      background: #00ffff !important; /* Lính Đảo: Cyan */
+    }
+    .coc-card[data-category="super_troop"] {
+      background: #ffb74d !important; /* Lính Super: Cam */
+    }
+
+    .coc-card[data-category] .card-name {
+      color: #111 !important;
+      font-weight: bold;
+    }
+
     .coc-card:active { cursor: grabbing; }
 
     .coc-card img {
@@ -301,8 +320,12 @@
 
     .coc-card.missing {
       border: 2px dashed #666 !important;
-      background: #181b26;
+      background: #181b26 !important;
       box-shadow: none !important;
+    }
+
+    .coc-card.missing .card-name {
+      color: #ccc !important;
     }
 
     .coc-card.missing img {
@@ -555,7 +578,7 @@
     </div>
   </div>
 
-  <!-- BẢNG TRAO ĐỔI THẺ QUA LẠI 2 CHIỀU (TWO-WAY CARD SWAP ENGINE) -->
+  <!-- BẢNG TRAO ĐỔI THẺ QUA LẠI 2 CHIỀU -->
   <div id="twoWayTradePanel" class="trade-panel-box hidden">
     <div class="panel-header">
       <h3 style="color: var(--accent-purple);">🔄 Máy Trao Đổi Thẻ Qua Lại (Two-Way Trade)</h3>
@@ -847,7 +870,7 @@
       const cardData = DEFAULT_CARDS.find(c => c.name === selectedSurplusCard);
       if (cardData) {
         dz.innerHTML = `
-          <div class="coc-card" style="margin:0; cursor:default; pointer-events:none;">
+          <div class="coc-card" data-category="${cardData.category}" style="margin:0; cursor:default; pointer-events:none;">
             <img src="${cardData.img}" alt="${cardData.name}">
             <span class="card-name">${cardData.name}</span>
           </div>
@@ -1063,7 +1086,6 @@
           if (selectedSurplusCard) renderFindSurplusResults();
         };
 
-        // --- CẬP NHẬT: TÍNH TOÁN CÁC THÔNG SỐ CỦA NICK ---
         const totalCardsInGame = DEFAULT_CARDS.length;
         const ownedCardTypesCount = Object.keys(acc.cards).filter(cName => acc.cards[cName] >= 1).length;
         const surplusCardTypesCount = Object.keys(acc.cards).filter(cName => acc.cards[cName] >= 2).length;
