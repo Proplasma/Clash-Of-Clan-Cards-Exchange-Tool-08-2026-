@@ -269,7 +269,7 @@
       min-height: 50px;
     }
 
-    /* Cards (Image Style) */
+    /* Cards Base Style */
     .coc-card {
       background: #2a3042;
       border: 2px solid var(--border-color);
@@ -288,21 +288,21 @@
       transition: all 0.2s;
     }
 
-    /* MÀU NỀN THEO PHÂN LOẠI LÍNH */
-    .coc-card[data-category="elixir"] {
+    /* CSS CONFIG: MÀU NỀN CHỈ KÍCH HOẠT KHI BODY CÓ LỚP .card-bg-enabled */
+    body.card-bg-enabled .coc-card[data-category="elixir"] {
       background: #ffb6c1 !important; /* Lính Thường: Hồng */
     }
-    .coc-card[data-category="dark_elixir"] {
+    body.card-bg-enabled .coc-card[data-category="dark_elixir"] {
       background: #e6e6fa !important; /* Lính Hắc Tiên: Tím Nhạt */
     }
-    .coc-card[data-category="builder_base"] {
+    body.card-bg-enabled .coc-card[data-category="builder_base"] {
       background: #00ffff !important; /* Lính Đảo: Cyan */
     }
-    .coc-card[data-category="super_troop"] {
+    body.card-bg-enabled .coc-card[data-category="super_troop"] {
       background: #ffb74d !important; /* Lính Super: Cam */
     }
 
-    .coc-card[data-category] .card-name {
+    body.card-bg-enabled .coc-card[data-category] .card-name {
       color: #111 !important;
       font-weight: bold;
     }
@@ -459,7 +459,6 @@
       background: #0d0f17;
     }
 
-    /* CSS cho phần thông số dưới Tên Nick */
     .nick-stats-info {
       display: flex;
       flex-direction: column;
@@ -475,17 +474,9 @@
       margin: 2px 0;
     }
 
-    .nick-stats-info span {
-      white-space: nowrap;
-    }
-
-    .nick-stats-info strong {
-      color: var(--accent-green);
-    }
-
-    .nick-stats-info strong.collected {
-      color: var(--accent-blue);
-    }
+    .nick-stats-info span { white-space: nowrap; }
+    .nick-stats-info strong { color: var(--accent-green); }
+    .nick-stats-info strong.collected { color: var(--accent-blue); }
 
     .tier-dropzone-container {
       flex: 1;
@@ -552,6 +543,7 @@
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="🔍 Lọc theo tên thẻ (vd: Pekka, Dragon, Rồng)..." oninput="filterCards()">
     </div>
+    <button id="toggleBgBtn" class="btn-info" onclick="toggleCardBackgrounds()">🎨 Tắt/Bật Màu Nền</button>
     <button class="btn-info" onclick="toggleFindSurplusPanel()">🔎 Tra Cứu Lính</button>
     <button class="btn-purple" onclick="toggleTwoWayTradePanel()">🔄 Trao Đổi Thẻ Qua Lại</button>
     <div class="btn-group">
@@ -713,6 +705,7 @@
     let selectedSurplusCard = null;
 
     let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
+      showCardBg: true, // Trạng thái mặc định bật màu nền
       accounts: [
         { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 3, "Dragon": 1 } },
         { id: "acc_2", name: "Nick Phụ 1", filterCategory: "all", cards: { "Barbarian": 4, "PEKKA": 1 } }
@@ -724,10 +717,29 @@
     }
 
     function init() {
+      applyCardBgState();
       renderBank();
       setupBankDropzone();
       setupFindDropzone();
       renderTiers();
+    }
+
+    /* HÀM XỬ LÝ BẬT/TẮT MÀU NỀN THẺ */
+    function toggleCardBackgrounds() {
+      state.showCardBg = !state.showCardBg;
+      applyCardBgState();
+      saveState();
+    }
+
+    function applyCardBgState() {
+      const btn = document.getElementById('toggleBgBtn');
+      if (state.showCardBg !== false) {
+        document.body.classList.add('card-bg-enabled');
+        if (btn) btn.innerText = "🎨 Màu Nền: BẬT";
+      } else {
+        document.body.classList.remove('card-bg-enabled');
+        if (btn) btn.innerText = "🎨 Màu Nền: TẮT";
+      }
     }
 
     function toggleFindSurplusPanel() {
@@ -735,7 +747,6 @@
       panel.classList.toggle('hidden');
     }
 
-    /* BẬT/TẮT BẢNG TRAO ĐỔI 2 CHIỀU */
     function toggleTwoWayTradePanel() {
       const panel = document.getElementById('twoWayTradePanel');
       panel.classList.toggle('hidden');
@@ -744,7 +755,6 @@
       }
     }
 
-    /* ĐỔ DỮ LIỆU CÁC NICK VÀO SELECT TRAO ĐỔI */
     function populateTradeAccountSelects() {
       const selA = document.getElementById('tradeAccA');
       const selB = document.getElementById('tradeAccB');
@@ -761,7 +771,6 @@
       updateTradeCardOptions('B');
     }
 
-    /* CẬP NHẬT DANH SÁCH THẺ DỰA TRÊN NICK ĐƯỢC CHỌN */
     function updateTradeCardOptions(side) {
       const accId = document.getElementById(side === 'A' ? 'tradeAccA' : 'tradeAccB').value;
       const cardSelect = document.getElementById(side === 'A' ? 'tradeCardA' : 'tradeCardB');
@@ -782,7 +791,6 @@
       });
     }
 
-    /* HÀM THỰC THI TRAO ĐỔI THẺ 2 CHIỀU (ATOMIC TWO-WAY SWAP) */
     function executeTwoWayTrade() {
       const accAId = document.getElementById('tradeAccA').value;
       const accBId = document.getElementById('tradeAccB').value;
@@ -804,7 +812,6 @@
       const accA = state.accounts.find(a => a.id === accAId);
       const accB = state.accounts.find(a => a.id === accBId);
 
-      // Validation kiểm tra số lượng đủ để đổi
       if ((accA.cards[cardAName] || 0) < qtyA) {
         alert(`❌ ${accA.name} không đủ thẻ [${cardAName}] (Có: ${accA.cards[cardAName] || 0}, Yêu cầu: ${qtyA})!`);
         return;
@@ -814,14 +821,12 @@
         return;
       }
 
-      // Tiến hành hoán đổi Atomic
       accA.cards[cardAName] -= qtyA;
       accB.cards[cardBName] -= qtyB;
 
       accA.cards[cardBName] = (accA.cards[cardBName] || 0) + qtyB;
       accB.cards[cardAName] = (accB.cards[cardAName] || 0) + qtyA;
 
-      // Xóa key nếu số lượng thẻ = 0
       if (accA.cards[cardAName] <= 0) delete accA.cards[cardAName];
       if (accB.cards[cardBName] <= 0) delete accB.cards[cardBName];
 
@@ -856,7 +861,6 @@
       });
     }
 
-    /* TÍNH NĂNG TRAO ĐỔI TẠI KẾT QUẢ TÌM KIẾM */
     function renderFindSurplusResults() {
       const dz = document.getElementById('findSurplusDropzone');
       const resultsDiv = document.getElementById('findSurplusResults');
@@ -884,7 +888,6 @@
 
       let html = '<div style="display:flex; flex-direction:column; gap:12px; width:100%;">';
 
-      // Danh sách Nick có thẻ thừa
       html += `<div><strong style="color:var(--accent-green);">🟢 Nick có thẻ THỪA (>1):</strong></div>`;
       if (surplusNicks.length === 0) {
         html += `<div style="color:#aaa; font-size:0.85rem; padding-left:10px;">Không có Nick nào đang thừa thẻ này.</div>`;
@@ -902,7 +905,6 @@
         html += `</div>`;
       }
 
-      // Danh sách Nick đang thiếu
       html += `<div style="margin-top:5px;"><strong style="color:#f44336;">🔴 Nick ĐANG THIẾU (0 thẻ):</strong></div>`;
       if (missingNicks.length === 0) {
         html += `<div style="color:#aaa; font-size:0.85rem; padding-left:10px;">Tất cả Nick đều đã sở hữu thẻ này.</div>`;
@@ -919,7 +921,6 @@
         html += `</div>`;
       }
 
-      // Ô Ghép cặp Trao Đổi Nhanh
       if (surplusNicks.length > 0 && missingNicks.length > 0) {
         html += `<div style="margin-top:10px; padding:12px; background:#11141f; border-radius:8px; border:1px solid var(--accent-blue);">`;
         html += `<strong style="color:var(--accent-blue); font-size:0.95rem;">🔄 Ghép Cặp Trao Đổi Nhanh 1 Chiều:</strong>`;
@@ -942,7 +943,6 @@
       resultsDiv.innerHTML = html;
     }
 
-    /* Xử lý trao đổi 1 thẻ đơn hướng */
     function quickTrade(fromAccId, toAccId, cardName) {
       const fromAcc = state.accounts.find(a => a.id === fromAccId);
       const toAcc = state.accounts.find(a => a.id === toAccId);
@@ -1190,7 +1190,7 @@
                 const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, 0, true);
                 dropzone.appendChild(cardEl);
               } else if (qty > 1) {
-                const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, qty, false);
+                const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty, false);
                 dropzone.appendChild(cardEl);
               }
             }
@@ -1415,6 +1415,7 @@
           const importedData = JSON.parse(e.target.result);
           if (importedData && Array.isArray(importedData.accounts)) {
             state = importedData;
+            applyCardBgState();
             saveState(); 
             renderTiers();
             alert('Đã nhập dữ liệu thành công!');
