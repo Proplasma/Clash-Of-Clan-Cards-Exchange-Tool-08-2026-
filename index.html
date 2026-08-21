@@ -212,13 +212,38 @@
       color: var(--accent-purple);
     }
 
+    /* MAIN WORKSPACE LAYOUT (Flexbox Kho Thẻ & Quick Sidebar) */
+    .main-workspace-layout {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 900px) {
+      .main-workspace-layout {
+        flex-direction: column;
+      }
+      .bank-section {
+        flex: 1 1 100% !important;
+        width: 100%;
+      }
+      .quick-sidebar {
+        flex: 1 1 100% !important;
+        width: 100%;
+        position: relative !important;
+        top: 0 !important;
+      }
+    }
+
     /* Card Palette / Bank */
     .bank-section {
+      flex: 0 0 78%;
       background: var(--card-bg);
       padding: 15px;
       border-radius: 10px;
       border: 1px solid var(--border-color);
-      margin-bottom: 25px;
+      box-sizing: border-box;
       transition: border-color 0.2s, background-color 0.2s;
     }
 
@@ -233,6 +258,169 @@
       color: #aaa;
       font-size: 0.9rem;
       text-transform: uppercase;
+    }
+
+    /* QUICK SIDEBAR (BẢNG KÉO NHANH NICK) */
+    .quick-sidebar {
+      flex: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+
+    .quick-sidebar.pinned {
+      position: sticky;
+      top: 15px;
+      max-height: 85vh;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      border-color: var(--accent-color);
+    }
+
+    .quick-sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .quick-sidebar-title {
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: var(--accent-color);
+      text-transform: uppercase;
+    }
+
+    .btn-pin {
+      background: #11141f;
+      color: #aaa;
+      border: 1px solid var(--border-color);
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-pin.active {
+      background: var(--accent-color);
+      color: #000;
+      border-color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    .quick-nick-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quick-nick-card {
+      background: #161925;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 10px;
+      transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+    }
+
+    .quick-nick-card.drag-over {
+      background: rgba(255, 152, 0, 0.2);
+      border-color: var(--accent-color);
+      transform: scale(1.02);
+    }
+
+    .quick-nick-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .quick-nick-name {
+      font-weight: bold;
+      color: var(--text-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .quick-nick-count {
+      background: var(--border-color);
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+
+    .quick-recent-cards {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+      min-height: 22px;
+    }
+
+    .mini-recent-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border-color);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      color: #ccc;
+    }
+
+    .mini-recent-item img {
+      width: 14px;
+      height: 14px;
+      object-fit: contain;
+    }
+
+    /* TOAST NOTIFICATION STYLES */
+    #toastContainer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #1e2230;
+      color: var(--text-color);
+      border-left: 4px solid var(--accent-green);
+      padding: 10px 16px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      font-size: 0.85rem;
+      font-weight: bold;
+      animation: toastIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55), toastOut 0.3s ease 2.2s forwards;
+      pointer-events: auto;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes toastOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
     }
 
     /* Tab Filter Styles */
@@ -538,6 +726,9 @@
 
   <h1>⚔️ CoC Card Manager - Quản Lý & Trao Đổi 🛡️</h1>
 
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
   <!-- Controls -->
   <div class="controls-bar">
     <div class="search-box">
@@ -607,19 +798,33 @@
     </div>
   </div>
 
-  <!-- Kho Thẻ Mẫu -->
-  <div class="bank-section" id="bankSection">
-    <div class="bank-title">Kho Thẻ Mẫu (Kéo vào Nick để thêm / Kéo từ Nick trả về đây để trừ thẻ)</div>
+  <!-- MAIN WORKSPACE LAYOUT (Bọc Kho Thẻ & Quick Sidebar) -->
+  <div class="main-workspace-layout">
     
-    <div class="category-tabs" id="categoryTabs">
-      <button class="tab-btn active" onclick="setCategory('all', this)">Tất cả</button>
-      <button class="tab-btn" onclick="setCategory('elixir', this)">Lính thường</button>
-      <button class="tab-btn" onclick="setCategory('dark_elixir', this)">Lính hắc tiên dược</button>
-      <button class="tab-btn" onclick="setCategory('builder_base', this)">Lính đảo (Thợ xây)</button>
-      <button class="tab-btn" onclick="setCategory('super_troop', this)">Lính huyền thoại (Super)</button>
+    <!-- Kho Thẻ Mẫu (80%) -->
+    <div class="bank-section" id="bankSection">
+      <div class="bank-title">Kho Thẻ Mẫu (Kéo vào Nick để thêm / Kéo từ Nick trả về đây để trừ thẻ)</div>
+      
+      <div class="category-tabs" id="categoryTabs">
+        <button class="tab-btn active" onclick="setCategory('all', this)">Tất cả</button>
+        <button class="tab-btn" onclick="setCategory('elixir', this)">Lính thường</button>
+        <button class="tab-btn" onclick="setCategory('dark_elixir', this)">Lính hắc tiên dược</button>
+        <button class="tab-btn" onclick="setCategory('builder_base', this)">Lính đảo (Thợ xây)</button>
+        <button class="tab-btn" onclick="setCategory('super_troop', this)">Lính huyền thoại (Super)</button>
+      </div>
+
+      <div class="card-pool" id="cardBank"></div>
     </div>
 
-    <div class="card-pool" id="cardBank"></div>
+    <!-- Bảng Kéo Nhanh Nick (20%) -->
+    <div class="quick-sidebar" id="quickSidebar">
+      <div class="quick-sidebar-header">
+        <span class="quick-sidebar-title">⚡ Kéo Nhanh Vào Nick</span>
+        <button class="btn-pin" id="pinBtn" onclick="togglePinSidebar()">📌 Ghim Bảng</button>
+      </div>
+      <div class="quick-nick-list" id="quickNickList"></div>
+    </div>
+
   </div>
 
   <!-- Tier List Accounts -->
@@ -705,10 +910,11 @@
     let selectedSurplusCard = null;
 
     let state = JSON.parse(localStorage.getItem('coc_trade_data_img')) || {
-      showCardBg: true, // Trạng thái mặc định bật màu nền
+      showCardBg: true,
+      isSidebarPinned: false,
       accounts: [
-        { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 3, "Dragon": 1 } },
-        { id: "acc_2", name: "Nick Phụ 1", filterCategory: "all", cards: { "Barbarian": 4, "PEKKA": 1 } }
+        { id: "acc_1", name: "Nick Chính", filterCategory: "all", cards: { "PEKKA": 3, "Dragon": 1 }, recentCards: ["PEKKA", "Dragon"] },
+        { id: "acc_2", name: "Nick Phụ 1", filterCategory: "all", cards: { "Barbarian": 4, "PEKKA": 1 }, recentCards: ["Barbarian"] }
       ]
     };
 
@@ -718,10 +924,47 @@
 
     function init() {
       applyCardBgState();
+      applyPinState();
       renderBank();
       setupBankDropzone();
       setupFindDropzone();
       renderTiers();
+    }
+
+    /* HÀM TOAST NOTIFICATION */
+    function showToast(message) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerText = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 2500);
+    }
+
+    /* BẬT/TẮT GHIM BẢNG KÉO NHANH */
+    function togglePinSidebar() {
+      state.isSidebarPinned = !state.isSidebarPinned;
+      saveState();
+      applyPinState();
+    }
+
+    function applyPinState() {
+      const sidebar = document.getElementById('quickSidebar');
+      const btn = document.getElementById('pinBtn');
+      if (!sidebar || !btn) return;
+
+      if (state.isSidebarPinned) {
+        sidebar.classList.add('pinned');
+        btn.classList.add('active');
+        btn.innerText = '📌 Đã Ghim';
+      } else {
+        sidebar.classList.remove('pinned');
+        btn.classList.remove('active');
+        btn.innerText = '📌 Ghim Bảng';
+      }
     }
 
     /* HÀM XỬ LÝ BẬT/TẮT MÀU NỀN THẺ */
@@ -834,7 +1077,7 @@
       renderTiers();
       populateTradeAccountSelects();
 
-      alert(`✅ Trao đổi thành công!\n[${accA.name}] -${qtyA}x ${cardAName} ↔️ +${qtyB}x ${cardBName}\n[${accB.name}] -${qtyB}x ${cardBName} ↔️ +${qtyA}x ${cardAName}`);
+      showToast(`🔄 Đã trao đổi thành công giữa ${accA.name} và ${accB.name}`);
     }
 
     function setupFindDropzone() {
@@ -950,9 +1193,15 @@
       if (fromAcc && toAcc && (fromAcc.cards[cardName] || 0) > 1) {
         fromAcc.cards[cardName]--;
         toAcc.cards[cardName] = (toAcc.cards[cardName] || 0) + 1;
+        
+        if (!toAcc.recentCards) toAcc.recentCards = [];
+        toAcc.recentCards.unshift(cardName);
+        toAcc.recentCards = toAcc.recentCards.slice(0, 5);
+
         saveState();
         renderTiers();
         renderFindSurplusResults();
+        showToast(`✅ Đã chuyển 1x ${cardName} từ ${fromAcc.name} sang ${toAcc.name}`);
       }
     }
 
@@ -983,6 +1232,7 @@
             }
             saveState();
             renderTiers();
+            showToast(`🗑️ Đã trả 1x ${draggedCard.name} từ ${sourceAcc.name} về Kho`);
           }
         }
       });
@@ -1013,12 +1263,103 @@
       });
     }
 
+    /* RENDER BẢNG KÉO NHANH NICK */
+    function renderQuickSidebar() {
+      const container = document.getElementById('quickNickList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      state.accounts.forEach(acc => {
+        if (!acc.recentCards) acc.recentCards = [];
+
+        const totalQty = Object.values(acc.cards).reduce((sum, q) => sum + q, 0);
+
+        const card = document.createElement('div');
+        card.className = 'quick-nick-card';
+        card.dataset.accId = acc.id;
+
+        card.addEventListener('dragover', (e) => {
+          if (draggedType === 'CARD') {
+            e.preventDefault();
+            card.classList.add('drag-over');
+          }
+        });
+
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+
+        card.addEventListener('drop', (e) => {
+          if (draggedType !== 'CARD' || !draggedCard) return;
+          e.preventDefault();
+          e.stopPropagation();
+          card.classList.remove('drag-over');
+
+          if (draggedCard.fromAccId === acc.id) return;
+
+          addCardToAccount(acc, draggedCard.name, draggedCard.fromAccId);
+        });
+
+        let recentHTML = '';
+        if (acc.recentCards.length === 0) {
+          recentHTML = '<span style="color:#666; font-size:0.68rem; font-style:italic;">(Chưa có thẻ mới)</span>';
+        } else {
+          acc.recentCards.forEach(cName => {
+            const cData = DEFAULT_CARDS.find(c => c.name === cName);
+            const imgUrl = cData ? cData.img : 'https://via.placeholder.com/20';
+            recentHTML += `
+              <div class="mini-recent-item" title="${cName}">
+                <img src="${imgUrl}" alt="${cName}" onerror="this.onerror=null; this.src='https://via.placeholder.com/20';">
+                <span>${cName}</span>
+              </div>
+            `;
+          });
+        }
+
+        card.innerHTML = `
+          <div class="quick-nick-head">
+            <span class="quick-nick-name">👤 ${acc.name}</span>
+            <span class="quick-nick-count">x${totalQty} thẻ</span>
+          </div>
+          <div class="quick-recent-cards">
+            ${recentHTML}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    /* HÀM THÊM THẺ VÀO NICK LƯU LỊCH SỬ VÀ TOAST */
+    function addCardToAccount(targetAcc, cardName, sourceAccId = null) {
+      targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
+
+      if (!targetAcc.recentCards) targetAcc.recentCards = [];
+      targetAcc.recentCards.unshift(cardName);
+      targetAcc.recentCards = targetAcc.recentCards.slice(0, 5);
+
+      if (sourceAccId) {
+        const sourceAcc = state.accounts.find(a => a.id === sourceAccId);
+        if (sourceAcc && sourceAcc.cards[cardName]) {
+          sourceAcc.cards[cardName]--;
+          if (sourceAcc.cards[cardName] <= 0) {
+            delete sourceAcc.cards[cardName];
+          }
+        }
+      }
+
+      saveState();
+      renderTiers();
+      showToast(`🟢 Đã thêm [${cardName}] vào Nick [${targetAcc.name}] thành công!`);
+    }
+
     function renderTiers() {
       const container = document.getElementById('tierContainer');
       container.innerHTML = '';
 
       state.accounts.forEach((acc, index) => {
         if (!acc.filterCategory) acc.filterCategory = 'all';
+        if (!acc.recentCards) acc.recentCards = [];
 
         const row = document.createElement('div');
         row.className = 'tier-row';
@@ -1083,6 +1424,7 @@
         input.onchange = (e) => {
           acc.name = e.target.value;
           saveState();
+          renderQuickSidebar();
           if (selectedSurplusCard) renderFindSurplusResults();
         };
 
@@ -1190,7 +1532,7 @@
                 const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, 0, true);
                 dropzone.appendChild(cardEl);
               } else if (qty > 1) {
-                const cardEl = createCardElement(cardName, cardData.img, cardData.category, acc.id, true, qty, false);
+                const cardEl = createCardElement(cardData.name, cardData.img, cardData.category, acc.id, true, qty, false);
                 dropzone.appendChild(cardEl);
               }
             }
@@ -1221,6 +1563,7 @@
         container.appendChild(row);
       });
 
+      renderQuickSidebar();
       if (selectedSurplusCard) renderFindSurplusResults();
     }
 
@@ -1322,21 +1665,8 @@
       const targetAcc = state.accounts.find(a => a.id === targetAccId);
 
       if (targetAcc) {
-        targetAcc.cards[cardName] = (targetAcc.cards[cardName] || 0) + 1;
+        addCardToAccount(targetAcc, cardName, draggedCard.fromAccId);
       }
-
-      if (draggedCard.fromAccId) {
-        const sourceAcc = state.accounts.find(a => a.id === draggedCard.fromAccId);
-        if (sourceAcc && sourceAcc.cards[cardName]) {
-          sourceAcc.cards[cardName]--;
-          if (sourceAcc.cards[cardName] <= 0) {
-            delete sourceAcc.cards[cardName];
-          }
-        }
-      }
-
-      saveState();
-      renderTiers();
     }
 
     function changeQty(accId, cardName, delta) {
@@ -1344,6 +1674,14 @@
       if (!acc) return;
 
       acc.cards[cardName] = (acc.cards[cardName] || 0) + delta;
+      
+      if (delta > 0) {
+        if (!acc.recentCards) acc.recentCards = [];
+        acc.recentCards.unshift(cardName);
+        acc.recentCards = acc.recentCards.slice(0, 5);
+        showToast(`🟢 Đã thêm 1x [${cardName}] vào Nick [${acc.name}]`);
+      }
+
       if (acc.cards[cardName] <= 0) delete acc.cards[cardName];
 
       saveState();
@@ -1356,7 +1694,8 @@
         id: newId,
         name: `Nick ${state.accounts.length + 1}`,
         filterCategory: 'all',
-        cards: {}
+        cards: {},
+        recentCards: []
       });
       saveState();
       renderTiers();
@@ -1416,6 +1755,7 @@
           if (importedData && Array.isArray(importedData.accounts)) {
             state = importedData;
             applyCardBgState();
+            applyPinState();
             saveState(); 
             renderTiers();
             alert('Đã nhập dữ liệu thành công!');
